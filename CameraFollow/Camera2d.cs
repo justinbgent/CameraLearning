@@ -16,7 +16,6 @@ namespace CameraFollow
         private float _zoom;
         private Matrix _transform;
         private Vector2 _pos;
-        private float _rotation;
         private int _viewportWidth;
         private int _viewportHeight;
         private int _worldWidth;
@@ -26,7 +25,7 @@ namespace CameraFollow
             int worldHeight, float initialZoom)
         {
             _zoom = initialZoom;
-            _rotation = 0.0f;
+            Rotation = 0.0f;
             _pos = Vector2.Zero;
             _viewportWidth = viewport.Width;
             _viewportHeight = viewport.Height;
@@ -53,11 +52,7 @@ namespace CameraFollow
             }
         }
 
-        public float Rotation
-        {
-            get { return _rotation; }
-            set { _rotation = value; }
-        }
+        public float Rotation { get; set; }
 
         public void Move(Vector2 amount)
         {
@@ -73,6 +68,23 @@ namespace CameraFollow
                 float rightBarrier = _worldWidth - (float)_viewportWidth * .5f / _zoom;
                 float topBarrier = _worldHeight - (float)_viewportHeight * .5f / _zoom;
                 float bottomBarrier = (float)_viewportHeight * .5f / _zoom;
+                _pos = value;
+                if (_pos.Y > topBarrier)
+                {
+                    _pos.Y = topBarrier;
+                }
+                if (_pos.Y < bottomBarrier)
+                {
+                    _pos.Y = bottomBarrier;
+                }
+                if (_pos.X < leftBarrier)
+                {
+                    _pos.X = leftBarrier;
+                }
+                if (_pos.X > rightBarrier)
+                {
+                    _pos.X = rightBarrier;
+                }
             }
         }
 
