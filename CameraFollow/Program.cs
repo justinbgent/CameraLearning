@@ -44,5 +44,47 @@ namespace CameraFollow
             using (var game = new Game1())
                 game.Run();
         }
+
+        public static void Rotate(int[][] matrix)
+        {
+            int adjust = matrix.Length - 1;
+            int adjusting = adjust;
+
+            for (int i = 0; i < matrix.Length / 2; i++)
+            {
+                for (int j = 0; j < adjusting; j++)
+                {
+                    if (j == 0 && i > 0)
+                    {
+                        j = i;
+                        adjusting -= 1;
+                        // For safety
+                        if (j >= adjusting) break;
+                    }
+
+                    int firstIndice = j;                                        // 1
+                    int secondIndice = adjust - i;                              // 2 - 0
+                    int storeValue = matrix[i][j];                              // 2
+                                                                                // save value for next rotated position
+                    int nextElementValue = matrix[firstIndice][secondIndice];   // 6
+                                                                                // input value of rotated element
+                    matrix[firstIndice][secondIndice] = storeValue;             // 2
+
+                    // rotate value 90 degrees
+                    int timesLeft = 3;
+                    int oldFirst;
+                    while (timesLeft > 0)
+                    {
+                        oldFirst = firstIndice;
+                        firstIndice = secondIndice;
+                        secondIndice = adjust - oldFirst;
+                        storeValue = nextElementValue;
+                        nextElementValue = matrix[firstIndice][secondIndice];
+                        matrix[firstIndice][secondIndice] = storeValue;
+                        timesLeft--;
+                    }
+                }
+            }
+        }
     }
 }
