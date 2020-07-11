@@ -1,16 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CameraFollow
 {
     class Camera2d
     {
-        private const float zoomUpperLimit = 1.5f;
+        private const float zoomUpperLimit = 1f;
         private const float zoomLowerLimit = .5f;
 
         private float _zoom;

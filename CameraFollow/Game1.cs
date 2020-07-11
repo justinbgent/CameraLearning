@@ -28,12 +28,15 @@ namespace CameraFollow
 
         Texture2D grass;
         GameGrid grid;
+
+        float windowX = 1280;
+        float windowY = 720;
         
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1280;
-            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = (int)windowX;
+            graphics.PreferredBackBufferHeight = (int)windowY;
 
             mouseState = Mouse.GetState();
             previousScroll = mouseState.ScrollWheelValue;
@@ -60,6 +63,8 @@ namespace CameraFollow
 
         protected override void LoadContent()
         {
+
+            viewport = graphics.GraphicsDevice.Viewport;
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             player = Content.Load<Texture2D>("circle");
@@ -72,7 +77,10 @@ namespace CameraFollow
         {
             // TODO: Unload any non ContentManager content here
         }
+        
 
+        bool leftClickIsHeldDownOnBox = false;
+        MouseState previousMouse = Mouse.GetState();
 
         protected override void Update(GameTime gameTime)
         {
@@ -81,6 +89,7 @@ namespace CameraFollow
 
             // TODO: Add your update logic here
             keyState = Keyboard.GetState();
+            previousMouse = mouseState;
             mouseState = Mouse.GetState();
 
             #region Player Movement
@@ -108,16 +117,28 @@ namespace CameraFollow
             // Adjust zoom if the mouse wheel has moved
             if (mouseState.ScrollWheelValue > previousScroll)
             {
+                float oldZoom = camera.Zoom;
                 camera.Zoom += .05f; //zoomIncrement;
+
+                // camera.Zoom
+                float centerX = windowX / oldZoom - windowX / camera.Zoom;
+                float centerY = windowY / oldZoom - windowY / camera.Zoom;
+                camera.Pos += new Vector2(centerX/2, centerY / 2);
             }
             else if (mouseState.ScrollWheelValue < previousScroll)
             {
+                float oldZoom = camera.Zoom;
                 camera.Zoom -= .05f;
+
+                float centerX = windowX / oldZoom - windowX / camera.Zoom;
+                float centerY = windowY / oldZoom - windowY / camera.Zoom;
+                camera.Pos += new Vector2(centerX / 2, centerY / 2);
             }
 
             previousScroll = mouseState.ScrollWheelValue;
 
-            // Move the camera when the arrow keys are pressed
+            /* Move the camera when the arrow keys are pressed
+
             Vector2 movement = Vector2.Zero;
             Viewport vp = GraphicsDevice.Viewport;
 
@@ -138,26 +159,38 @@ namespace CameraFollow
                 movement.X++;
             }
 
-            //camera.Pos += movement * 20;
+            camera.Pos += movement * 5;
+            */
 
-            camera.Pos = new Vector2(playerPosition.X - 640 + player.Width/2, playerPosition.Y - 360 + player.Height/2);
+            camera.Pos = new Vector2(playerPosition.X - (windowX / camera.Zoom / 2) + player.Width/2, playerPosition.Y - (windowY / camera.Zoom / 2) + player.Height/2);
 
+            #region boxFollowMouse
             // Transform mouse input from view to world position
             Matrix inverse = Matrix.Invert(camera.GetTransformation());
             Vector2 mousePos = Vector2.Transform(new Vector2(mouseState.X, mouseState.Y), inverse);
 
-            float top = boxPosition.Y;
-            float bottom = boxPosition.Y + box.Height;
-            float left = boxPosition.X;
-            float right = boxPosition.X + box.Width;
-            if (mousePos.X > left && mousePos.X < right && mousePos.Y > top && mousePos.Y < bottom)
+            if (mouseState.LeftButton == ButtonState.Released)
             {
-                if (mouseState.LeftButton == ButtonState.Pressed)
+                leftClickIsHeldDownOnBox = false;
+            }
+            else if (leftClickIsHeldDownOnBox)
+            {
+                boxPosition.X -= (previousMousePos.X - mousePos.X);
+                boxPosition.Y -= (previousMousePos.Y - mousePos.Y);
+            }
+            else if (mouseState.LeftButton == ButtonState.Pressed && previousMouse.LeftButton != ButtonState.Pressed)
+            {
+                float top = boxPosition.Y;
+                float bottom = boxPosition.Y + box.Height;
+                float left = boxPosition.X;
+                float right = boxPosition.X + box.Width;
+
+                if (mousePos.X > left && mousePos.X < right && mousePos.Y > top && mousePos.Y < bottom)
                 {
-                    boxPosition.X -= (previousMousePos.X - mousePos.X);
-                    boxPosition.Y -= (previousMousePos.Y - mousePos.Y);
+                    leftClickIsHeldDownOnBox = true;
                 }
             }
+            #endregion
 
             previousMousePos = mousePos;
 
@@ -168,7 +201,7 @@ namespace CameraFollow
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black);
+            graphics.GraphicsDevice.Clear(Color.Black);
 
             // TODO: Add your drawing code here
 

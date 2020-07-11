@@ -25,7 +25,7 @@ namespace CameraFollow
             // matrix[2, 1] = 8;
             // matrix[2, 2] = 9;
             // Multi-Dimensional Array Syntax FTW!!!
-
+            /*
             int[][] matrix = new int[3][];
             matrix[0] = new int[3];
             matrix[1] = new int[3];
@@ -40,7 +40,7 @@ namespace CameraFollow
             matrix[2][0] = 7;
             matrix[2][1] = 8;
             matrix[2][2] = 9;
-
+            */
             using (var game = new Game1())
                 game.Run();
         }
