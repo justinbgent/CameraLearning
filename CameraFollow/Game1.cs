@@ -19,6 +19,8 @@ namespace CameraFollow
 
         Camera2d camera;
         Viewport viewport;
+        Viewport viewportLeft;
+        Viewport viewportRight;
 
         KeyboardState keyState;
         Keys[] previousKeys;
@@ -45,7 +47,7 @@ namespace CameraFollow
             previousMousePos = new Vector2(mouseState.X, mouseState.Y);
             IsMouseVisible = true;
 
-            camera = new Camera2d(this.viewport, 5120, 2880, 1f);
+            camera = new Camera2d(viewportLeft, 5120, 2880, 1f);
             Content.RootDirectory = "Content";
             IsFixedTimeStep = false;
 
@@ -55,6 +57,8 @@ namespace CameraFollow
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            viewportLeft = new Viewport(0, 0, 960, 720);
+            viewportRight = new Viewport(960, 0, 320, 720);
             playerPosition = new Vector2(graphics.PreferredBackBufferWidth / 4, graphics.PreferredBackBufferHeight / 2);
             boxPosition = new Vector2(graphics.PreferredBackBufferWidth / 2, graphics.PreferredBackBufferHeight / 2);
 
@@ -119,23 +123,17 @@ namespace CameraFollow
             {
                 float oldZoom = camera.Zoom;
                 camera.Zoom += .05f; //zoomIncrement;
-
-                // camera.Zoom
-                float centerX = windowX / oldZoom - windowX / camera.Zoom;
-                float centerY = windowY / oldZoom - windowY / camera.Zoom;
-                camera.Pos += new Vector2(centerX/2, centerY / 2);
             }
             else if (mouseState.ScrollWheelValue < previousScroll)
             {
                 float oldZoom = camera.Zoom;
                 camera.Zoom -= .05f;
-
-                float centerX = windowX / oldZoom - windowX / camera.Zoom;
-                float centerY = windowY / oldZoom - windowY / camera.Zoom;
-                camera.Pos += new Vector2(centerX / 2, centerY / 2);
             }
 
             previousScroll = mouseState.ScrollWheelValue;
+            
+            // Recipe for centering the camera on player even upon zoom. Move camera according to player's position.
+            camera.Pos = new Vector2(playerPosition.X - (viewportLeft.Width / camera.Zoom / 2) + player.Width/2, playerPosition.Y - (viewportLeft.Height / camera.Zoom / 2) + player.Height/2);
 
             /* Move the camera when the arrow keys are pressed
 
@@ -162,7 +160,7 @@ namespace CameraFollow
             camera.Pos += movement * 5;
             */
 
-            camera.Pos = new Vector2(playerPosition.X - (windowX / camera.Zoom / 2) + player.Width/2, playerPosition.Y - (windowY / camera.Zoom / 2) + player.Height/2);
+            #endregion
 
             #region boxFollowMouse
             // Transform mouse input from view to world position
@@ -190,7 +188,6 @@ namespace CameraFollow
                     leftClickIsHeldDownOnBox = true;
                 }
             }
-            #endregion
 
             previousMousePos = mousePos;
 
@@ -202,8 +199,9 @@ namespace CameraFollow
         protected override void Draw(GameTime gameTime)
         {
             graphics.GraphicsDevice.Clear(Color.Black);
-
-            // TODO: Add your drawing code here
+            
+            // Switch viewports right before spriteBatch.Begin(), and don't do again until after spriteBatch.End()
+            graphics.GraphicsDevice.Viewport = viewportLeft;
 
             spriteBatch.Begin(SpriteSortMode.BackToFront, null, null, null, null, null, camera.GetTransformation());
 
@@ -213,14 +211,21 @@ namespace CameraFollow
             {
                 spriteBatch.Draw(grass, position, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, .1f);
             }
-        
             spriteBatch.Draw(player, playerPosition, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
-            
             spriteBatch.Draw(box, new Vector2(800, 800), Color.White);
-
             spriteBatch.Draw(box, boxPosition, Color.White);
 
             spriteBatch.End();
+
+
+
+            graphics.GraphicsDevice.Viewport = viewportRight;
+
+            spriteBatch.Begin();
+            spriteBatch.Draw(box, new Vector2(50, 200), Color.White);
+            spriteBatch.End();
+
+            graphics.GraphicsDevice.Viewport = viewport;
 
             base.Draw(gameTime);
         }
